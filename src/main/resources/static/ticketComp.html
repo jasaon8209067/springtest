@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>購票結帳頁面</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- http://localhost:8080/ticketComp.html -->
+    <h1>🎫 線上購票系統</h1>
+    <!-- 活動資訊區 -->
+    <div class="event-info">
+        <div class="event-left">
+            <!-- <img src="thepalaceMuseum.png" alt="event-icon" class="event-image"> -->
+            <img id="eventImage" src="" class="event-image">
+        </div>
+        <div class="event-center">
+            <!-- <h5 class="event-title">甲子萬年:國立故宮博物院百年院慶特展</h5> -->
+            <h5 id="eventTitle" class="event-title"></h5>
+            <!-- <p>細項說明:祀與戎：古代兵器攻略</p> -->
+            <p id="eventImage"></p>
+            <!-- <p id="eventDetail"></p> -->
+            <p id="eventDate"></p>
+            <p id="eventLocation"></p>
+        </div>
+        <div class="event-right">
+            <!-- 日曆 + 時段 -->
+      <div class="field">
+        <label for="datePicker">選擇日期: </label>
+        <input id="datePicker" type="date" />
+      </div>
+
+      <div class="field">
+        <label for="timeSelect">選擇時段: </label>
+        <select id="timeSelect" disabled>
+          <option>請先選擇日期</option>
+        </select>
+      </div>
+      <div id="timeNote" class="smallnote" style="text-align:right;"></div>
+            <!-- <select id="eventselecttime">
+                <option selected>請選擇場次時間</option>
+                <option value="2024-07-01 10:00">2024-07-01 10:00</option>
+                <option value="2024-07-01 14:00">2024-07-01 14:00</option>
+                <option value="2024-07-02 10:00">2024-07-02 10:00</option>
+                <option value="2024-07-02 14:00">2024-07-02 14:00</option>
+            </select> -->
+        </div>
+    </div>
+
+    <!-- 購票區 -->
+    <div class="ticketzone">
+        <h2>購票區</h2>
+        <table class="tickets" style="border: 1px solid black; border-collapse:collapse ;">
+            <tr>
+                <th>票種</th><th>票價</th><th>數量</th><th>備註</th>
+            </tr>
+            <!-- <tr>
+                <td>兒童票</td>
+                <td>150</td>
+                <td>
+                    <select id="kidtickets">
+                        <option selected>請選擇張數</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                    </select>
+                </td>
+                <td>限0-12歲之兒童購買，入場時需出示相關證件</td>
+            </tr>
+            <tr>
+                <td>成人票</td>
+                <td>300</td>
+                <td>
+                    <select id="abulttickets">
+                        <option selected>請選擇張數</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>敬老票</td>
+                <td>100</td>
+                <td>
+                    <select id="oldmantickets">
+                        <option selected>請選擇張數</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                    </select>
+                </td>
+                <td>限65歲以上之民眾購買，入場時需出示相關證件</td>
+            </tr> -->
+            <tbody>
+                <!-- 這裡會被 JavaScript 動態塞入資料 -->
+            </tbody>
+        </table>
+
+        <!-- 右下角總計區 -->
+        <div class="totalfee">
+            <!-- 可增加顯示各票種張數 -->
+            <div>總共張數: <span id="toatltickets"></span></div>
+            <!-- <div>小計: <span id="subtotal"></span></div> -->
+            <!-- <div>服務費: <span id="fee">NT$0</span></div> -->
+            <hr>
+            <div><strong>總金額: <span id="total"></span></strong></div>
+            <div style="margin-top:10px"><button class="btn" id="checkoutBtn">前往結帳</button></div>
+        </div>
+
+        <div style="clear:both"></div>
+        <div id="message"></div>
+    </div>
+    <footer>
+        頁尾區（可放版權、聯絡資訊）
+    </footer>
+
+    <script>
+        //等整個HTML文件載入完成後執行，活動資料載入
+        document.addEventListener("DOMContentLoaded", () => {
+            const eventId = 2;//設定活動ID
+            fetch(`/events/${eventId}`) //呼叫後端API取得活動資料
+                .then(response => response.json())
+                .then(event => {
+                    document.getElementById("eventTitle").textContent = event.name;
+                    //document.getElementById("eventDetail").textContent = event.detail;
+                    document.getElementById("eventDate").textContent = `展出期間: ${event.date}`;
+                    document.getElementById("eventLocation").textContent = `活動地點: ${event.location}`;
+                    document.getElementById("eventImage").src = `data:image/jpeg;base64,${event.image}`;
+                })
+
+
+        });
+
+        //日期+時間
+        function geteventtime () {
+            const eventId = 2; // <-- 改成你要的 event id
+            const datePicker = document.getElementById('datePicker');   // <input type="date" id="datePicker">取得選擇的日期
+            const timeSelect = document.getElementById('timeSelect');   // <select id="timeSelect">
+            const timeNote   = document.getElementById('timeNote');     // 顯示說明文字
+            const messageEl  = document.getElementById('message');      // 顯示錯誤或提示
+            }
+            
+        // 將 ISO 或 YYYY-MM-DD 的字串轉成 YYYY-MM-DD（若為 Date ISO 會包含 T）
+            function toYMD(str) {
+                if (!str) return '';
+                // 若傳入的是 Date-like ISO (2025-12-25T19:30:00) -> 取前 10 個字
+                if (str.indexOf && str.indexOf('T') >= 0) return str.slice(0, 10);
+                // 若傳入已是 YYYY-MM-DD，直接回傳
+                return str;
+            }
+
+        //票種載入
+        document.addEventListener("DOMContentLoaded", () => {
+            fetch("/api/tickets")//呼叫後端API取得票種資料 /api/tickets
+                .then(response => response.json())
+                .then(data => {
+                    const table = document.querySelector(".tickets");
+                    // 清除舊資料（保留表頭）
+                    table.innerHTML = `
+                <tr>
+                    <th>票種</th>
+                    <th>票價</th>
+                    <th>數量</th>
+                    <th>備註</th>
+                </tr>
+            `;
+                    // const tbody = document.querySelector(".tickets tbody");
+                    // tbody.innerHTML = "";//如果沒有票種資料，表頭也會被清掉
+                    data.forEach(ticket => {
+                        table.innerHTML += `
+                    <tr>
+                        <td>${ticket.name}</td>
+                        <td>${ticket.price}</td>
+                        <td>
+                            <select class="ticketselct" data-price="${ticket.price}">
+                                <option selected>請選擇張數</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                            </select>
+                        </td>
+                        <td>${ticket.remark || ''}</td>
+                    </tr>
+                `;
+                    });
+                })
+                .catch(err => console.error("讀取票種資料時發生錯誤:", err));
+        });
+
+        //計算總金額
+        function calculateTotal() {
+            //取得所有票種的下拉選單
+            const ticketSelects = document.querySelectorAll(".ticketselct");
+            let totalTickets = 0;
+            let subtotal = 0;
+            //遍歷每個下拉選單，計算總票數和小計
+            ticketSelects.forEach(select => {
+                const quantity = parseInt(select.value) || 0;//取得票種數量，如果沒選擇則為0
+                const price = parseInt(select.getAttribute("data-price")) || 0;//從data-price屬性讀取單價
+                totalTickets += quantity;
+                subtotal += quantity * price;
+            });
+            //更新總票數和小計顯示
+            document.getElementById("toatltickets").textContent = `總共${totalTickets}張`;
+            // document.getElementById("subtotal").textContent = `NT$${subtotal}`;
+            document.getElementById("total").textContent = `NT$${subtotal}`;
+
+        }
+
+        //監聽票種數量變更事件，重新計算總金額
+        document.querySelector(".tickets").addEventListener("change", function (e) {
+            //如果觸發事件的目標元素(e.target)具有class="ticketselct"
+            if (e.target.classList.contains("ticketselct")) {
+                calculateTotal();//就呼叫calculateTotal方法計算總金額
+            }
+        });
+    </script>
+
+</body>
+
+</html>

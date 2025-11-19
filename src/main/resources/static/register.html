@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+	<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Insert title here</title>
+	</head>
+		<body>
+			<h1>註冊頁</h1>
+			<hr>
+			<form id="regForm">
+			<!--設定required不能為-->
+				帳號: <input id="account" required="required">
+					<span id="mesg" style="color: red"></span><br>
+				密碼: <input id="passwd" required="required"><br>
+				姓名: <input id="name" required="required"><br>
+					<input type="submit" value="regiter">
+			</form>
+			
+			<script type="text/javascript">
+			//取得DOM元素
+			let account = document.getElementById("account");
+			let passwd = document.getElementById("passwd");
+			let name = document.getElementById("name");
+			
+			//blur是一種DOM事件(Event)，當使用(input、textarea、select...)失去焦點(focus)時觸發
+			//async表示此函示是非同步，內部可以使用await
+			//如果account內有值，執行下方程式
+			//執行後呼叫後端API URL，res會得到一個Response物件，回傳內容解析成JSON格式
+			account.addEventListener('blur',async() => {
+				if(account.value){
+					let url = "/api/member/exist?account=" + account.value
+					let res = await fetch(url);
+					let isExist = await res.json();
+					
+					//三元運算:條件式 ? 條件為真時的值 : 條件為假時的值
+				    mesg.textContent = isExist ? "帳號已被使用" : "";
+
+				}
+			})
+			
+			// e.preventDefault()阻止預設的form提交行為(避免整頁刷新)
+			regForm.addEventListener('submit',async(e) => {
+				e.preventDefault();
+				// 將表單資料組成 JSON 物件
+				let data = {
+					account: account.value,
+					passwd: passwd.value,
+					name: name.value
+				};
+				let url = "/api/member/register";
+				let res = await fetch(url, {
+					method: 'POST',
+	                headers: { "Content-Type": "application/json" }, //告訴後端是JSON格式
+	                body: JSON.stringify(data) //將物件轉成JSON字串
+				});
+				
+				//回傳JSON格式
+				 let json = await res.json();
+				 mesg.textContent = json.success ? "註冊成功" : "註冊失敗";
+			});
+			
+			</script>
+		</body>
+</html>
