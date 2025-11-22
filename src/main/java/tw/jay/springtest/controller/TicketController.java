@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import tw.jay.springtest.DTO.Response.TicketTypeResponse;
 import tw.jay.springtest.entity.TicketType;
 import tw.jay.springtest.service.TicketTypeService;
 
@@ -20,12 +19,13 @@ public class TicketController {
     private TicketTypeService service;
 
    @GetMapping
-   public List<TicketTypeResponse> getAll() {
-        return service.getalltickets();
+   //DTO做法
+//    public List<TicketTypeResponse> getAll() {
+//         return service.getalltickets();
+//     }
+    public List<TicketType> getAllTickets() {
+        return service.getAllTicket();
     }
-    // public List<TicketType> getAllTickets() {
-    //     return service.getAllTicket();
-    // }
 
     @GetMapping("/status")
     public List<TicketType> getStatusTickets() {

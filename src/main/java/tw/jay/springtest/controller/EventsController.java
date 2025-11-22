@@ -2,6 +2,7 @@ package tw.jay.springtest.controller;
 
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import tw.jay.springtest.entity.Events;
 import tw.jay.springtest.service.EventsService;
 
 @RestController
@@ -19,6 +21,11 @@ public class EventsController {
 
     @Autowired
     private EventsService eventsService;
+
+    @GetMapping("/all")
+    public List<Events> getallEvents(){
+        return eventsService.getallEvent();
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getEvent(@PathVariable Long id) {
@@ -34,7 +41,8 @@ public class EventsController {
                     response.put("id", event.getId());
                     response.put("name", event.getName());
                     // response.put("detail", event.getDetail());
-                    response.put("date", event.getDate());
+                    response.put("startDate", event.getStartDate());
+                    response.put("endDate", event.getEndDate());
                     response.put("location", event.getLocation());
                     response.put("image", base64Image);
 

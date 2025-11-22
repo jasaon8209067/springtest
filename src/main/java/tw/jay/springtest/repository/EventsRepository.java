@@ -7,5 +7,5 @@ import tw.jay.springtest.entity.Events;
 
 @Repository
 public interface EventsRepository extends JpaRepository<Events, Long> {
-    
+    // List<Events> findByActiveTrue();
 }

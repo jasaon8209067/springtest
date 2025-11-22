@@ -27,19 +27,11 @@
             <p id="eventLocation"></p>
         </div>
         <div class="event-right">
-            <!-- 日曆 + 時段 -->
-      <div class="field">
-        <label for="datePicker">選擇日期: </label>
-        <input id="datePicker" type="date" />
-      </div>
-
-      <div class="field">
-        <label for="timeSelect">選擇時段: </label>
-        <select id="timeSelect" disabled>
-          <option>請先選擇日期</option>
-        </select>
-      </div>
-      <div id="timeNote" class="smallnote" style="text-align:right;"></div>
+            <!-- 日曆 -->
+            <div class="field">
+                <label for="datePicker">選擇日期: </label>
+                <input id="datePicker" type="date" />
+            </div>
             <!-- <select id="eventselecttime">
                 <option selected>請選擇場次時間</option>
                 <option value="2024-07-01 10:00">2024-07-01 10:00</option>
@@ -52,10 +44,13 @@
 
     <!-- 購票區 -->
     <div class="ticketzone">
-        <h2>購票區</h2>
+        <h2>票種選擇</h2>
         <table class="tickets" style="border: 1px solid black; border-collapse:collapse ;">
             <tr>
-                <th>票種</th><th>票價</th><th>數量</th><th>備註</th>
+                <th>票種</th>
+                <th>票價</th>
+                <th>數量</th>
+                <th>備註</th>
             </tr>
             <!-- <tr>
                 <td>兒童票</td>
@@ -107,6 +102,7 @@
         <!-- 右下角總計區 -->
         <div class="totalfee">
             <!-- 可增加顯示各票種張數 -->
+            <div>票種: <span id="tickettype"></span></div>
             <div>總共張數: <span id="toatltickets"></span></div>
             <!-- <div>小計: <span id="subtotal"></span></div> -->
             <!-- <div>服務費: <span id="fee">NT$0</span></div> -->
@@ -125,37 +121,49 @@
     <script>
         //等整個HTML文件載入完成後執行，活動資料載入
         document.addEventListener("DOMContentLoaded", () => {
-            const eventId = 2;//設定活動ID
+            const eventId = 1;//設定活動ID
             fetch(`/events/${eventId}`) //呼叫後端API取得活動資料
                 .then(response => response.json())
                 .then(event => {
                     document.getElementById("eventTitle").textContent = event.name;
                     //document.getElementById("eventDetail").textContent = event.detail;
-                    document.getElementById("eventDate").textContent = `展出期間: ${event.date}`;
+                    document.getElementById("eventDate").textContent = `展出期間: ${event.startDate} ~ ${event.endDate}`;
                     document.getElementById("eventLocation").textContent = `活動地點: ${event.location}`;
                     document.getElementById("eventImage").src = `data:image/jpeg;base64,${event.image}`;
-                })
 
+                    //設定日曆可選日期(目前有BUG可以選擇展覽期間已經結束的日期)
+                    const datePicker = document.getElementById("datePicker")
+
+                    const startDate = new Date(event.startDate);
+                    const endDate = new Date(event.endDate);
+
+                    const bookingStart = new Date(startDate);
+                    bookingStart.setDate(bookingStart.getDate() - 5);
+
+                    //設定今日，只比日期不比時間
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);  // 避免時間問題
+
+
+                    const minDate = (today > bookingStart) ? today : bookingStart;
+
+                    // 轉成 date input 可接受的 YYYY-MM-DD 格式
+                    function toYMD(date) {
+                        return date.toISOString().slice(0, 10);
+                    }
+                    datePicker.min = toYMD(bookingStart);
+                    datePicker.max = toYMD(endDate);
+
+                    console.log("最早可預訂日期:", datePicker.min);
+                    console.log("活動結束日期:", datePicker.max);
+                    console.log("最終可選最小日:", datePicker.min);
+                    console.log("最終可選最大日:", datePicker.max);
+
+                })
 
         });
 
-        //日期+時間
-        function geteventtime () {
-            const eventId = 2; // <-- 改成你要的 event id
-            const datePicker = document.getElementById('datePicker');   // <input type="date" id="datePicker">取得選擇的日期
-            const timeSelect = document.getElementById('timeSelect');   // <select id="timeSelect">
-            const timeNote   = document.getElementById('timeNote');     // 顯示說明文字
-            const messageEl  = document.getElementById('message');      // 顯示錯誤或提示
-            }
-            
-        // 將 ISO 或 YYYY-MM-DD 的字串轉成 YYYY-MM-DD（若為 Date ISO 會包含 T）
-            function toYMD(str) {
-                if (!str) return '';
-                // 若傳入的是 Date-like ISO (2025-12-25T19:30:00) -> 取前 10 個字
-                if (str.indexOf && str.indexOf('T') >= 0) return str.slice(0, 10);
-                // 若傳入已是 YYYY-MM-DD，直接回傳
-                return str;
-            }
+
 
         //票種載入
         document.addEventListener("DOMContentLoaded", () => {
@@ -202,14 +210,23 @@
             const ticketSelects = document.querySelectorAll(".ticketselct");
             let totalTickets = 0;
             let subtotal = 0;
+            //陣列存取會員選擇的票種
+            let selectedTicketsText = [];
             //遍歷每個下拉選單，計算總票數和小計
             ticketSelects.forEach(select => {
                 const quantity = parseInt(select.value) || 0;//取得票種數量，如果沒選擇則為0
                 const price = parseInt(select.getAttribute("data-price")) || 0;//從data-price屬性讀取單價
+                const ticketName = select.closest("tr").querySelector("td").textContent; //票種名稱
+
+                if (quantity > 0) {
+                    selectedTicketsText.push(`${ticketName} ${quantity}張`);
+                }
+
                 totalTickets += quantity;
                 subtotal += quantity * price;
             });
             //更新總票數和小計顯示
+            document.getElementById("tickettype").textContent = selectedTicketsText.join("/");
             document.getElementById("toatltickets").textContent = `總共${totalTickets}張`;
             // document.getElementById("subtotal").textContent = `NT$${subtotal}`;
             document.getElementById("total").textContent = `NT$${subtotal}`;

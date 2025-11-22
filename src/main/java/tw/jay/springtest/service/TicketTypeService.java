@@ -1,14 +1,12 @@
 package tw.jay.springtest.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import tw.jay.springtest.DTO.Request.CreateTicketTypeRequest;
 import tw.jay.springtest.DTO.Request.UpdateTicketTypeRequest;
-import tw.jay.springtest.DTO.Response.TicketTypeResponse;
 import tw.jay.springtest.entity.TicketType;
 import tw.jay.springtest.mapper.TicketTypeMapper;
 import tw.jay.springtest.repository.TicketTypeRepository;
@@ -37,15 +35,15 @@ public class TicketTypeService {
     private TicketTypeRepository repo;
 
     // DTO作法
-    public List<TicketTypeResponse> getalltickets(){
-        return repo.findAll().stream()
-        .map(TicketTypeMapper::toResponse)
-        .collect(Collectors.toList());
-    }
-
-    // public List<TicketType> getAllTicket() {
-    //     return repo.findAll();
+    // public List<TicketTypeResponse> getalltickets(){
+    //     return repo.findAll().stream()
+    //     .map(TicketTypeMapper::toResponse)
+    //     .collect(Collectors.toList());
     // }
+
+    public List<TicketType> getAllTicket() {
+        return repo.findAll();
+    }
 
     public List<TicketType> getStatusTickets() {
         return repo.findByStatusTrue();
@@ -81,4 +79,12 @@ public class TicketTypeService {
     public void deleteTicket(Long id) {
         repo.deleteById(id);
     }
+    
+    //
+    public TicketType findById(Long id) {
+    return repo.findById(id)
+            .orElseThrow(() -> new RuntimeException("TicketType not found: " + id));
+}
+
+
 }

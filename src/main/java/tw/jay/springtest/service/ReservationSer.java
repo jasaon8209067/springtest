@@ -1,8 +1,12 @@
 package tw.jay.springtest.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import tw.jay.springtest.repository.ReservationRepo;
 
 @Service
 public class ReservationSer {
-    private ReservationSer re
+    @Autowired
+    private ReservationRepo reservationRepo;
 }
