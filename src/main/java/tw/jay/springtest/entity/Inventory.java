@@ -9,11 +9,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.Data;
 
 @Entity
 @Table(name = "inventory") // 處理庫存
-@Data
+
 public class Inventory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,4 +28,45 @@ public class Inventory {
     private int totalTic;// 票總庫存量
     private int availableTic;// 票可售數量(動態)
     private LocalDateTime lastUpdated;
+
+
+    public TicketType getTicketType() {
+        return ticketType;
+    }
+
+    public void setTicketType(TicketType ticketType2) {
+        this.ticketType = ticketType2;
+    }
+
+    public int getTotalTic() {
+        return totalTic;
+    }
+
+    public void setTotalTic(int totalTic) {
+        this.totalTic = totalTic;
+    }
+
+    public int getAvailableTic() {
+        return availableTic;
+    }
+
+    public void setAvailableTic(int availableTic) {
+        this.availableTic = availableTic;
+    }
+
+    public LocalDateTime getLastUpdated() {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated(LocalDateTime lastUpdated) {
+        this.lastUpdated = lastUpdated;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 }

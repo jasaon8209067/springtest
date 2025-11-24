@@ -121,7 +121,7 @@
     <script>
         //等整個HTML文件載入完成後執行，活動資料載入
         document.addEventListener("DOMContentLoaded", () => {
-            const eventId = 1;//設定活動ID
+            const eventId = 2;//設定活動ID
             fetch(`/events/${eventId}`) //呼叫後端API取得活動資料
                 .then(response => response.json())
                 .then(event => {
@@ -240,6 +240,12 @@
                 calculateTotal();//就呼叫calculateTotal方法計算總金額
             }
         });
+
+        
+
+
+
+        
     </script>
 
 </body>

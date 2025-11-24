@@ -1,0 +1,29 @@
+1.
+Mapper 會負責：
+把 Create DTO → Entity
+把 Update DTO → 更新 Entity
+把 Entity → Response DTO
+
+2.
+為什麼 Mapper 要做 Partial Update
+更新時，UpdateDTO 可能只傳部分值
+{
+  "price": 200
+}
+這表示：只改 price，name、remark、status 都保持原值
+所以 updateEntity 才會用：
+if (dto.getName() != null) {
+    entity.setName(dto.getName());
+}
+這叫做 Partial Update / Patch Update
+是 REST API 最理想的做法。
+
+3.Service全面改成用 DTO
+Service 會做三件事：
+    a.接收 Repository 回傳的 Entity
+    b.用 Mapper 轉成 Response DTO
+    c.回傳給 Controller
+另外：
+    d.Create：CreateDTO → Entity → ResponseDTO
+    e.Update：UpdateDTO → 更新 Entity → ResponseDTO
+    f.Query：Entity List → ResponseDTO List

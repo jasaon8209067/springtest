@@ -5,37 +5,49 @@ import tw.jay.springtest.DTO.Request.UpdateTicketTypeRequest;
 import tw.jay.springtest.DTO.Response.TicketTypeResponse;
 import tw.jay.springtest.entity.TicketType;
 
-
 public class TicketTypeMapper {
-    //Entity轉Response DTO
-    //將TicketType Entity轉換為TicketTypeResponse DTO
-    public static TicketTypeResponse toResponse(TicketType entity) {
-        TicketTypeResponse response = new TicketTypeResponse();
-        response.setId(entity.getId());
-        response.setName(entity.getName());
-        response.setPrice(entity.getPrice());
-        response.setRemark(entity.getRemark());
-        response.setStatus(entity.isStatus());
-        return response;
-        
-    }
-    
-    //CreateTicketTypeRequest DTO轉換為TicketType Entity(建立新的票種)
-    public static TicketType toEntity(CreateTicketTypeRequest request) {
+
+    //CreateTicketTypeRequest -> Entity
+    public static TicketType toEntity(CreateTicketTypeRequest dto){
         TicketType entity = new TicketType();
-        entity.setName(request.getName());
-        entity.setPrice(request.getPrice());
-        entity.setRemark(request.getRemark());
-        entity.setStatus(request.isStatus());
+        entity.setName(dto.getName());
+        entity.setPrice(dto.getPrice());
+        entity.setRemark(dto.getRemark());
+        entity.setStatus(dto.getStatus());
         return entity;
-
     }
 
-    //使用UpdateTicketTypeRequest DTO更新現有的TicketType Entity
-    public static void updateEntity(TicketType entity, UpdateTicketTypeRequest request) {
-        entity.setName(request.getName());
-        entity.setPrice(request.getPrice());
-        entity.setRemark(request.getRemark());
-        entity.setStatus(request.isStatus());
-    }   
+    //UpdateTicketTypeRequest -> 更新既有Entity(Partial Update）
+    public static void updateEntity(TicketType entity, UpdateTicketTypeRequest dto){
+        if(dto.getName() != null){
+            entity.setName(dto.getName());
+        }
+
+        if(dto.getPrice() != null){
+            entity.setPrice(dto.getPrice());
+        }
+
+        if (dto.getRemark() != null) {
+            entity.setRemark(dto.getRemark());
+        }
+
+        if (dto.getStatus() != null) {
+            entity.setStatus(dto.getStatus());
+        }
+    }
+
+
+    //Entity -> Response DTO
+    public static TicketTypeResponse toResponse(TicketType entity){
+        TicketTypeResponse res = new TicketTypeResponse();
+        res.setId(entity.getId());
+        res.setName(entity.getName());
+        res.setPrice(entity.getPrice());
+        res.setRemark(entity.getRemark());
+        res.setStatus(entity.isStatus());
+        return res;
+    }
+
+
+
 }

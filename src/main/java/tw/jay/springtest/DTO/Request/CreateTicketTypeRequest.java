@@ -1,20 +1,22 @@
 package tw.jay.springtest.DTO.Request;
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
+//新增用
 @Data
 public class CreateTicketTypeRequest {
-    @NotBlank(message = "Name canot be empty")
-    @Size(max = 50, message = "Name must be less than 50 characters")
+    @NotBlank(message = "票種名稱不能空白")
     private String name;
-
-    @Min(value = 0, message = "Price must be a positive number")
+    
+    @Positive(message = "價格必須大於 0")
     private int price;
     
     private String remark;
-    private boolean status;
+    
+    @NotNull(message = "狀態不能為空")
+    private Boolean status;
 
 }

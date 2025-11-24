@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import tw.jay.springtest.DTO.Request.CreateTicketTypeRequest;
 import tw.jay.springtest.DTO.Request.UpdateTicketTypeRequest;
+import tw.jay.springtest.DTO.Response.TicketTypeResponse;
 import tw.jay.springtest.entity.TicketType;
 import tw.jay.springtest.mapper.TicketTypeMapper;
 import tw.jay.springtest.repository.TicketTypeRepository;
@@ -35,56 +36,63 @@ public class TicketTypeService {
     private TicketTypeRepository repo;
 
     // DTO作法
-    // public List<TicketTypeResponse> getalltickets(){
-    //     return repo.findAll().stream()
-    //     .map(TicketTypeMapper::toResponse)
-    //     .collect(Collectors.toList());
-    // }
-
-    public List<TicketType> getAllTicket() {
-        return repo.findAll();
+    //查所有票種
+    public List<TicketTypeResponse> getalltickets(){
+        return repo.findAll()
+                .stream()//將查出的List轉成Java Stream
+                .map(TicketTypeMapper::toResponse)//將每一個TicketType轉換成 TicketTypeResponse
+                .toList();        
     }
 
-    public List<TicketType> getStatusTickets() {
-        return repo.findByStatusTrue();
+    //查啟用的票種
+    public List<TicketTypeResponse> getStatusTickets(){
+        return repo.findByStatusTrue()
+            .stream()
+            .map(TicketTypeMapper::toResponse)
+            .toList();
     }
 
-    public TicketType updateStatus(Long id, boolean status) {
-
-        // 依 ID 查詢票種，若查不到則丟出例外
-        TicketType ticket = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Ticket not found"));
-
-        // 更新票種狀態
-        ticket.setStatus(status);
-
-        // 儲存回資料庫並回傳
-        return repo.save(ticket);
+    //新增票種
+    public TicketTypeResponse createTicket(CreateTicketTypeRequest dto){
+        TicketType entity = TicketTypeMapper.toEntity(dto);//前端傳過來的request需要透過mapper轉換成entity
+        TicketType saved = repo.save(entity);//存入資料庫，回傳真正寫入後的entity
+        return TicketTypeMapper.toResponse(saved);//不能直接回傳entity給前端所以需要轉成response DTO
     }
 
-    // 新增新票種
-    public TicketType createTicket(CreateTicketTypeRequest dto) {
-        TicketType ticket = TicketTypeMapper.toEntity(dto);
-        return repo.save(ticket);
+    //更新票種資料
+    public TicketTypeResponse updateTicket(Long id, UpdateTicketTypeRequest dto){
+        TicketType entity = repo.findById(id)
+            .orElseThrow(() -> new RuntimeException("此票種不存在"));
+
+        TicketTypeMapper.updateEntity(entity, dto);
+
+        TicketType updated = repo.save(entity);
+        return TicketTypeMapper.toResponse(updated);
+    
     }
 
-    // 更新現有的票種
-    public TicketType updateTicket(Long id, UpdateTicketTypeRequest dto) {
-        TicketType ticket = repo.findById(id).orElseThrow(() -> new RuntimeException("Ticket not found"));
-        TicketTypeMapper.updateEntity(ticket, dto);
-        return repo.save(ticket);
+    //更新票種狀態
+    public TicketTypeResponse updateStatus(Long id, boolean status){
+        TicketType entity = repo.findById(id)
+        .orElseThrow(() -> new RuntimeException("此票種不存在"));
+
+        entity.setStatus(status);
+        TicketType updated = repo.save(entity);
+
+        return TicketTypeMapper.toResponse(updated);     
     }
 
-    // 刪除票種
-    public void deleteTicket(Long id) {
+    //查詢單一票種
+    public TicketTypeResponse findById(Long id){
+        TicketType entity = repo.findById(id)
+        .orElseThrow(() -> new RuntimeException("此票種不存在"));
+        return TicketTypeMapper.toResponse(entity);
+    }
+
+    //刪除票種
+    public void deleteTicket(Long id){
         repo.deleteById(id);
     }
-    
-    //
-    public TicketType findById(Long id) {
-    return repo.findById(id)
-            .orElseThrow(() -> new RuntimeException("TicketType not found: " + id));
-}
 
 
 }
