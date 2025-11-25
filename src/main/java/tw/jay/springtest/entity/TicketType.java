@@ -17,6 +17,7 @@ public class TicketType {
     private int price;
     private String remark;
     private boolean status;
+    private String description;
 
     // Getter、Setter
     public Long getId() { return id; }
@@ -37,5 +38,13 @@ public class TicketType {
 
     public void setStatus(boolean status) {
         this.status = status;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

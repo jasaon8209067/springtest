@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>模擬付款頁面 - 顯示收到的 JSON</title>
+    <style>
+        body{font-family:Arial, "Noto Sans TC", sans-serif; padding:20px; background:#f7f7f7}
+        .card{background:white; border-radius:8px; padding:18px; box-shadow:0 2px 8px rgba(0,0,0,0.08); max-width:900px; margin:0 auto}
+        pre{background:#111; color:#dff; padding:12px; border-radius:6px; overflow:auto}
+        .btn{display:inline-block; margin-right:8px; padding:10px 14px; border-radius:6px; cursor:pointer; border:none}
+        .btn-confirm{background:#28a745; color:white}
+        .btn-cancel{background:#dc3545; color:white}
+        .small{font-size:0.9rem; color:#666}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🔐 模擬付款頁面</h2>
+        <p class="small">此頁面會顯示從選票頁傳過來的 JSON（使用 <code>sessionStorage.checkoutData</code> 傳遞）。</p>
+
+        <h3>收到的資料（JSON）</h3>
+        <div id="jsonContainer">
+            <p class="small">讀取中…</p>
+        </div>
+
+        <h3>票券明細（可視化）</h3>
+        <div id="summary"></div>
+
+        <div style="margin-top:16px;">
+            <button id="confirmBtn" class="btn btn-confirm">模擬付款成功</button>
+            <button id="cancelBtn" class="btn btn-cancel">取消並回到選票頁</button>
+        </div>
+
+        <p class="small" style="margin-top:12px" id="status"></p>
+    </div>
+
+    <script>
+        // 讀取 sessionStorage 中的 checkoutData
+        const raw = sessionStorage.getItem("checkoutData");
+        const jsonContainer = document.getElementById("jsonContainer");
+        const summary = document.getElementById("summary");
+        const status = document.getElementById("status");
+
+        if (!raw) {
+            jsonContainer.innerHTML = "<p style='color:#cc0000'>沒有在 sessionStorage 找到 checkoutData。請從選票頁進入（會將資料存在 sessionStorage）。</p>";
+            summary.innerHTML = '<p class="small">沒有票券資料。</p>';
+        } else {
+            try {
+                const data = JSON.parse(raw);
+
+                // 顯示漂亮格式化的 JSON
+                const pretty = JSON.stringify(data, null, 2);
+                jsonContainer.innerHTML = `<pre>${escapeHtml(pretty)}</pre>`;
+
+                // 顯示票券清單
+                if (Array.isArray(data.reserved) && data.reserved.length > 0) {
+                    let html = '<table style="width:100%; border-collapse:collapse"><thead><tr><th style="text-align:left">票種</th><th>單價</th><th>數量</th><th>小計</th></tr></thead><tbody>';
+                    data.reserved.forEach(item => {
+                        const subtotal = (item.price || 0) * (item.quantity || 0);
+                        html += `<tr>
+                            <td style="padding:6px 0">${escapeHtml(item.name || ("票種#" + (item.ticketTypeId || '?')))}</td>
+                            <td style="text-align:center">${item.price || 0}</td>
+                            <td style="text-align:center">${item.quantity || 0}</td>
+                            <td style="text-align:right">${subtotal}</td>
+                        </tr>`;
+                    });
+                    html += `</tbody></table>`;
+                    html += `<p style="text-align:right; font-weight:bold; margin-top:8px">總金額：NT$ ${Number(data.totalAmount || 0)}</p>`;
+                    summary.innerHTML = html;
+                } else {
+                    summary.innerHTML = '<p class="small">票券陣列為空。</p>';
+                }
+
+                // 顯示 expiresAt（若有）
+                if (data.expiresAt) {
+                    const expireDate = new Date(Number(data.expiresAt));
+                    status.textContent = `保留到：${expireDate.toLocaleString()}（若超過則需回補）`;
+                }
+
+            } catch (e) {
+                jsonContainer.innerHTML = "<p style='color:#cc0000'>解析 checkoutData 發生錯誤。</p>";
+                summary.innerHTML = "<p class='small'>請確認資料格式。</p>";
+                console.error(e);
+            }
+        }
+
+        // 簡單的 HTML escape（為了安全顯示 JSON）
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"]/g, function (c) {
+                return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+            });
+        }
+
+        // 模擬付款成功：標記 sessionStorage 中的 checkoutData.completed = true
+        document.getElementById("confirmBtn").addEventListener("click", async () => {
+            const raw2 = sessionStorage.getItem("checkoutData");
+            if (!raw2) { alert("找不到 checkoutData"); return; }
+            const data = JSON.parse(raw2);
+            // 將 completed 屬性設為 true（代表已付款）
+            data.completed = true;
+            data.paidAt = new Date().toISOString();
+            sessionStorage.setItem("checkoutData", JSON.stringify(data));
+
+            // 示範：若你要通知後端建立訂單或確認保留，可在這裡呼叫 API
+            // 例如：
+            // await fetch('/api/orders/create', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
+
+            status.textContent = "付款成功（模擬）。已標記為已完成。";
+            status.style.color = "#218838";
+
+            // 跳轉回選票頁或顯示訂單頁
+            // setTimeout(() => { window.location.href = 'ticketComp.html'; }, 1200);
+        });
+
+        // 取消：直接回到選票頁（不會自動回補，實際系統應呼叫 /api/inventory/restore）
+        document.getElementById("cancelBtn").addEventListener("click", () => {
+            // 也可以在這裡刪除 sessionStorage（視流程而定）
+            // sessionStorage.removeItem("checkoutData");
+            window.location.href = "ticketComp.html";
+        });
+    </script>
+</body>
+</html>

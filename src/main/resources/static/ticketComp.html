@@ -26,20 +26,20 @@
             <p id="eventDate"></p>
             <p id="eventLocation"></p>
         </div>
-        <div class="event-right">
-            <!-- 日曆 -->
-            <div class="field">
+        <!-- <div class="event-right"> -->
+        <!-- 日曆 -->
+        <!-- <div class="field">
                 <label for="datePicker">選擇日期: </label>
                 <input id="datePicker" type="date" />
-            </div>
-            <!-- <select id="eventselecttime">
+            </div> -->
+        <!-- <select id="eventselecttime">
                 <option selected>請選擇場次時間</option>
                 <option value="2024-07-01 10:00">2024-07-01 10:00</option>
                 <option value="2024-07-01 14:00">2024-07-01 14:00</option>
                 <option value="2024-07-02 10:00">2024-07-02 10:00</option>
                 <option value="2024-07-02 14:00">2024-07-02 14:00</option>
             </select> -->
-        </div>
+    </div>
     </div>
 
     <!-- 購票區 -->
@@ -119,45 +119,53 @@
     </footer>
 
     <script>
+        // 讀取 URL 的 eventId
+        // const params = new URLSearchParams(window.location.search);
+        // const eventId = parseInt(params.get('eventId'));
+
+        // 用 eventId 來載入後端資料或決定頁面顯示內容
+        // console.log("從 URL 拿到的活動 ID:", eventId);
+
         //等整個HTML文件載入完成後執行，活動資料載入
         document.addEventListener("DOMContentLoaded", () => {
-            const eventId = 2;//設定活動ID
+            const eventId = 3;//設定活動ID
             fetch(`/events/${eventId}`) //呼叫後端API取得活動資料
                 .then(response => response.json())
                 .then(event => {
-                    document.getElementById("eventTitle").textContent = event.name;
+                    document.getElementById("eventTitle").textContent = event.title;
                     //document.getElementById("eventDetail").textContent = event.detail;
-                    document.getElementById("eventDate").textContent = `展出期間: ${event.startDate} ~ ${event.endDate}`;
-                    document.getElementById("eventLocation").textContent = `活動地點: ${event.location}`;
+                    document.getElementById("eventDate").textContent = `展出期間: ${event.event_start} ~ ${event.event_end}`;
+                    document.getElementById("eventLocation").textContent = `活動地點: ${event.address}`;
                     document.getElementById("eventImage").src = `data:image/jpeg;base64,${event.image}`;
 
-                    //設定日曆可選日期(目前有BUG可以選擇展覽期間已經結束的日期)
-                    const datePicker = document.getElementById("datePicker")
+                    // //設定日曆可選日期(目前有BUG可以選擇展覽期間已經結束的日期)
+                    // const datePicker = document.getElementById("datePicker")
+                    // const selectedDate = datePicker ? datePicker.value : null;
 
-                    const startDate = new Date(event.startDate);
-                    const endDate = new Date(event.endDate);
+                    // const startDate = new Date(event.event_start);
+                    // const endDate = new Date(event.event_end);
 
-                    const bookingStart = new Date(startDate);
-                    bookingStart.setDate(bookingStart.getDate() - 5);
+                    // const bookingStart = new Date(startDate);
+                    // bookingStart.setDate(bookingStart.getDate() - 5);
 
-                    //設定今日，只比日期不比時間
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);  // 避免時間問題
+                    // //設定今日，只比日期不比時間
+                    // const today = new Date();
+                    // today.setHours(0, 0, 0, 0);  // 避免時間問題
 
 
-                    const minDate = (today > bookingStart) ? today : bookingStart;
+                    // const minDate = (today > bookingStart) ? today : bookingStart;
 
-                    // 轉成 date input 可接受的 YYYY-MM-DD 格式
-                    function toYMD(date) {
-                        return date.toISOString().slice(0, 10);
-                    }
-                    datePicker.min = toYMD(bookingStart);
-                    datePicker.max = toYMD(endDate);
+                    // // 轉成 date input 可接受的 YYYY-MM-DD 格式
+                    // function toYMD(date) {
+                    //     return date.toISOString().slice(0, 10);
+                    // }
+                    // datePicker.min = toYMD(bookingStart);
+                    // datePicker.max = toYMD(endDate);
 
-                    console.log("最早可預訂日期:", datePicker.min);
-                    console.log("活動結束日期:", datePicker.max);
-                    console.log("最終可選最小日:", datePicker.min);
-                    console.log("最終可選最大日:", datePicker.max);
+                    // console.log("最早可預訂日期:", datePicker.min);
+                    // console.log("活動結束日期:", datePicker.max);
+                    // console.log("最終可選最小日:", datePicker.min);
+                    // console.log("最終可選最大日:", datePicker.max);
 
                 })
 
@@ -241,11 +249,213 @@
             }
         });
 
-        
+        // 假設你的 select 下拉選單 class = "ticketselct"
+        // 這個函式會收集所有已選票種與數量，並嘗試逐一扣庫存
+        async function reserveTicketsBeforeCheckout() {
+            // 收集選擇的票種與數量
+            const selects = document.querySelectorAll(".ticketselct");
+            const reservations = []; // 要送到後端的請求物件陣列
+            selects.forEach(select => {
+                const qty = parseInt(select.value) || 0;
+                if (qty > 0) {
+                    // 需要一個 ticketTypeId，假設後端 ticket DTO 有 id 屬性
+                    // 我們在建立票種列時可以把 data-id 設上，先假設存在
+                    const tr = select.closest("tr");
+                    const ticketId = tr.getAttribute("data-ticket-id"); // 注意：下面會告訴你如何在生成列時加入 data-ticket-id
+                    reservations.push({
+                        ticketTypeId: Number(ticketId),
+                        quantity: qty
+                    });
+                }
+            });
+
+            if (reservations.length === 0) {
+                alert("請選擇至少一張票。");
+                return { success: false, message: "沒有選票" };
+            }
+
+            // 已成功扣的項目（用來在發生錯誤時回補）
+            const succeeded = [];
+
+            // 逐一呼叫後端扣庫存（你也可以改造成 batch API，一起送）
+            for (const r of reservations) {
+                try {
+                    const resp = await fetch('/api/inventory/decreaseinventory', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(r)
+                    });
+                    const body = await resp.json();
+
+                    // 你目前的 controller 回傳 Map {success: boolean, message: "..."}
+                    if (body.success) {
+                        succeeded.push(r); // 記錄已扣成功的
+                    } else {
+                        // 庫存不足或失敗 -> 回補之前成功扣掉的票
+                        // 逐一呼叫 restore
+                        for (const s of succeeded) {
+                            await fetch('/api/inventory/restore', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(s)
+                            });
+                        }
+                        return { success: false, message: body.message || '扣庫存失敗' };
+                    }
+                } catch (err) {
+                    // 網路或其他問題 -> 回補
+                    for (const s of succeeded) {
+                        await fetch('/api/inventory/restore', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(s)
+                        });
+                    }
+                    return { success: false, message: '與伺服器通訊發生錯誤' };
+                }
+            }
+
+            // 如果到這裡都成功：回傳已被保留的票（前端可記錄並開始 3 分鐘計時）
+            return { success: true, reserved: succeeded };
+        }
+
+        // 按下「前往結帳」的處理器
+        document.getElementById("checkoutBtn").addEventListener("click", async () => {
+            // 先嘗試扣庫存
+            const res = await reserveTicketsBeforeCheckout();
+            if (!res.success) {
+                document.getElementById("message").textContent = `結帳失敗：${res.message}`;
+                return;
+            }
+
+            const reserved = res.reserved; // array of {ticketTypeId, quantity}
+            document.getElementById("message").textContent = "已暫時保留票券，請於 3 分鐘內完成付款。";
+
+            // 將保留資料存在 localStorage（或 sessionStorage）以便在 3 分鐘後回補（若未完成）
+            const reservationRecord = {
+                reserved,
+                expiresAt: Date.now() + 1 * 60 * 1000, // 3 分鐘後
+                completed: false // 若完成付款/下單，前端要把這個設成 true
+            };
+            localStorage.setItem("ticketReservation", JSON.stringify(reservationRecord));
+
+            // 設定三分鐘後檢查，如果仍未完成則回補
+            setTimeout(async () => {
+                const stored = JSON.parse(localStorage.getItem("ticketReservation") || 'null');
+                if (!stored) return;
+                if (stored.completed) {
+                    // 已完成付款/下單，不需回補
+                    localStorage.removeItem("ticketReservation");
+                    return;
+                }
+                // 未完成 -> 回補
+                for (const s of stored.reserved) {
+                    try {
+                        await fetch('/api/inventory/restore', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(s)
+                        });
+                    } catch (e) {
+                        console.error("回補失敗，請在後端建立額外機制處理遺漏回補", e);
+                    }
+                }
+                localStorage.removeItem("ticketReservation");
+                document.getElementById("message").textContent = "保留時間已到，已自動回補票券。";
+            }, 1 * 60 * 1000);
+
+            // 這裡你可以導到付款頁面(例如 /checkout.html)，或開啟付款 modal
+            // window.location.href = '/checkout.html'; 
+        });
+
+        // 當付款成功或下單成功時，請在前端把 reservation.completed 設為 true，防止自動回補
+        async function onPaymentSuccess(orderId) {
+            const stored = JSON.parse(localStorage.getItem("ticketReservation") || 'null');
+            if (!stored) return;
+            stored.completed = true;
+            localStorage.setItem("ticketReservation", JSON.stringify(stored));
+            // 你也可以通知後端建立一筆訂單紀錄 (optional)
+            localStorage.removeItem("ticketReservation");
+            document.getElementById("message").textContent = "付款成功，訂單已成立，感謝購買。";
+            // 導向訂單頁面...
+        }
 
 
 
-        
+
+        /**
+ * 收集目前選票資訊並跳到 payment.html（使用 sessionStorage 傳資料）
+ * 把這段放在你現有的 checkout 按鈕 handler 裡，或直接替換原本的跳轉程式。
+ */
+        async function goToFakePayment() {
+            const selects = document.querySelectorAll(".ticketselct");
+            const reserved = [];
+            let totalAmount = 0;
+
+            // // 獲取選擇的日期
+            // const selectedDate = document.getElementById("datePicker").value;
+            // // 如果日期未選擇，提醒用戶
+            // if (!selectedDate) {
+            //     alert("請選擇日期！");
+            //     return;
+            // }
+
+            selects.forEach(select => {
+                const qty = parseInt(select.value) || 0;
+                if (qty > 0) {
+                    const tr = select.closest("tr");
+                    const ticketId = tr.getAttribute("data-ticket-id") || null;
+                    const ticketName = tr.querySelector("td").textContent.trim();
+                    const price = parseInt(select.getAttribute("data-price")) || 0;
+
+
+                    reserved.push({
+                        ticketTypeId: ticketId ? Number(ticketId) : null,
+                        name: ticketName,
+                        price: price,
+                        quantity: qty
+                    });
+                    totalAmount += price * qty;
+                }
+            });
+
+            if (reserved.length === 0) {
+                alert("請先選擇至少一張票。");
+                return;
+            }
+
+            // 建立要傳給付款頁的物件
+            const checkoutData = {
+                reserved,                   // array of {ticketTypeId, name, price, quantity}
+                totalAmount,                // 總金額
+                // selectedDate,               // 選擇的日期
+                createdAt: new Date().toISOString(),
+                // 若你有使用三分鐘保留機制，也可帶上 expiresAt
+                expiresAt: Date.now() + 1 * 60 * 1000
+            };
+
+            // 使用 sessionStorage 傳資料（會在同一瀏覽器分頁/視窗間保留）
+            sessionStorage.setItem("checkoutData", JSON.stringify(checkoutData));
+
+            // 導到 fake 付款頁（確保 payment.html 放在同一個 server / 同一目錄）
+            window.location.href = "payment.html";
+        }
+
+        // 若你想把原本 checkoutBtn 的 handler 改成呼叫 goToFakePayment：
+        const checkoutBtn = document.getElementById("checkoutBtn");
+        if (checkoutBtn) {
+            checkoutBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                goToFakePayment();
+            });
+        }
+
+
+
+
+
+
+
     </script>
 
 </body>
