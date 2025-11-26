@@ -7,23 +7,25 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import tw.jay.springtest.entity.Events;
+import tw.jay.springtest.entity.Event;
 import tw.jay.springtest.service.EventsService;
 
 @RestController
-@RequestMapping("/events")
+@RequestMapping("/api/events")
+@CrossOrigin(origins = "http://localhost:5173")
 public class EventsController {
 
     @Autowired
     private EventsService eventsService;
 
     @GetMapping("/all")
-    public List<Events> getallEvents(){
+    public List<Event> getallEvents(){
         return eventsService.getallEvent();
     }
 
@@ -39,11 +41,11 @@ public class EventsController {
                     // 回傳 JSON 給前端
                     Map<String, Object> response = new HashMap<>();
                     response.put("id", event.getId());
-                    response.put("name", event.getName());
+                    response.put("title", event.getTitle());
                     // response.put("detail", event.getDetail());
-                    response.put("startDate", event.getStartDate());
-                    response.put("endDate", event.getEndDate());
-                    response.put("location", event.getLocation());
+                    response.put("event_start", event.getEvent_start());
+                    response.put("event_end", event.getEvent_end());
+                    response.put("address", event.getAddress());
                     response.put("image", base64Image);
 
                     return ResponseEntity.ok(response);// 如果有找到event就回傳200和event

@@ -15,13 +15,13 @@
     <div class="event-info">
         <div class="event-left">
             <!-- <img src="thepalaceMuseum.png" alt="event-icon" class="event-image"> -->
-            <img id="eventImage" src="" class="event-image">
+            <!-- <img id="eventImage" src="" class="event-image"> -->
         </div>
         <div class="event-center">
             <!-- <h5 class="event-title">甲子萬年:國立故宮博物院百年院慶特展</h5> -->
             <h5 id="eventTitle" class="event-title"></h5>
             <!-- <p>細項說明:祀與戎：古代兵器攻略</p> -->
-            <p id="eventImage"></p>
+            <!-- <p id="eventImage"></p> -->
             <!-- <p id="eventDetail"></p> -->
             <p id="eventDate"></p>
             <p id="eventLocation"></p>
@@ -120,15 +120,16 @@
 
     <script>
         // 讀取 URL 的 eventId
-        // const params = new URLSearchParams(window.location.search);
-        // const eventId = parseInt(params.get('eventId'));
+        const params = new URLSearchParams(window.location.search);
+        const eventId = parseInt(params.get('eventId'));
 
         // 用 eventId 來載入後端資料或決定頁面顯示內容
-        // console.log("從 URL 拿到的活動 ID:", eventId);
+        console.log("從 URL 拿到的活動 ID:", eventId);
 
+        //const eventId = 14;//調整活動ID使用
         //等整個HTML文件載入完成後執行，活動資料載入
         document.addEventListener("DOMContentLoaded", () => {
-            const eventId = 3;//設定活動ID
+            // const eventId = 20;//設定活動ID
             fetch(`/events/${eventId}`) //呼叫後端API取得活動資料
                 .then(response => response.json())
                 .then(event => {
@@ -175,7 +176,7 @@
 
         //票種載入
         document.addEventListener("DOMContentLoaded", () => {
-            fetch("/api/tickets")//呼叫後端API取得票種資料 /api/tickets
+            fetch(`/api/eventtickettype/event_ticket_type/${eventId}`)//呼叫後端API取得票種資料 /api/tickets
                 .then(response => response.json())
                 .then(data => {
                     const table = document.querySelector(".tickets");
@@ -193,10 +194,10 @@
                     data.forEach(ticket => {
                         table.innerHTML += `
                     <tr>
-                        <td>${ticket.name}</td>
-                        <td>${ticket.price}</td>
+                        <td>${ticket.ticketType}</td>
+                        <td>${ticket.customprice}</td>
                         <td>
-                            <select class="ticketselct" data-price="${ticket.price}">
+                            <select class="ticketselct" data-price="${ticket.customprice}">
                                 <option selected>請選擇張數</option>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
