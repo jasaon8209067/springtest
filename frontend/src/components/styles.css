@@ -102,16 +102,14 @@ h1 {
 }
 
 
-/* ====== 購票區：表格區塊 (不再有總計區) ====== */
+/* ====== 購票區：表格區塊 (ticket-layout) ====== */
 .ticket-layout {
-    display: flex; /* 即使現在只有左側表格，保留 Flex 方便未來擴展 */
-    gap: 24px; 
-    align-items: flex-start; 
+    display: block; 
     width: 100%;
 }
 .ticket-left {
-    flex: 1 1 auto; 
-    min-width: 0; 
+    width: 100%; 
+    overflow-x: auto; /* 確保表格可滾動 */
 }
 
 /* 表格樣式 */
@@ -125,42 +123,81 @@ h1 {
     padding: 12px 10px;
     text-align: center;
 }
+/* 移除最外側表格邊框的重複線條 */
+.tickets th:first-child, .tickets td:first-child {
+    border-left: none; 
+}
+.tickets th:last-child, .tickets td:last-child {
+    border-right: none;
+}
+/* .tickets tr:first-child th {
+    border-top: none;
+}
+.tickets tr:last-child td {
+    border-bottom: none; 
+} */
+/* 補齊表格左右邊框，使其視覺上與 ticketzone 的圓角邊緣對齊 */
+.tickets {
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+}
+
+/* 表頭樣式 */
 .tickets th {
     background-color: #f1f3f5;
     color: #0056b3;
     font-weight: 600;
 }
+
+/* *** 下拉選單樣式 (已修改為白色背景，並確保文字為黑色) *** */
 .tickets select {
     width: 100px;
     padding: 6px;
     border-radius: 5px;
     border: 1px solid #ccc;
+    background-color: white; /* 設置為白色背景 */
+    color: #222; /* 確保文字顏色為深色 (黑色) */
 }
+/* *** 下拉選單樣式 結束 *** */
 
 
-/* ====== 總計區 (totalfee) - 固定在右下角 (新的類別名稱) ====== */
+/* ====== 總計區 (totalfee) - 靠右對齊 ====== */
 .totalfee-fixed {
-    /* *** 關鍵修正點：固定定位 *** */
-    position: fixed; 
-    bottom: 30px; 
-    right: 30px; 
+    /* 關鍵：靠右對齊 */
+    margin-left: auto; 
+    margin-right: 0; 
     
-    width: 240px; 
+    /* 設置固定寬度 */
+    width: 100%;
+    max-width: 400px; /* 限制最大寬度 */
     
     /* 外觀樣式 */
-    border: 2px solid #ccc;
-    border-radius: 10px;
-    padding: 15px;
-    background: #fafafa;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); 
+    position: static; 
+    background: #fff;
+    border: 2px solid #ccc; 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
+    padding: 15px 20px; 
     color: #222;
-    z-index: 100; /* 確保在頂層 */
+    z-index: 100; 
+    border-radius: 10px; 
+    margin-top: 20px; 
 }
+
+/* 讓總計金額和票種等資訊在區塊內呈現左標籤右數值的形式 */
+.totalfee-fixed > div:not(:last-child) {
+    text-align: left;
+    display: flex; 
+    justify-content: space-between; 
+    line-height: 1.8;
+}
+
+.totalfee-fixed strong {
+    font-size: 1.2rem;
+    color: #000;
+}
+
 .totalfee-fixed hr {
     margin: 10px 0;
-}
-.totalfee-fixed .btn {
-    margin-top: 10px;
 }
 
 
@@ -180,22 +217,17 @@ h1 {
 
 /* ====== 響應式設計 (Media Queries) ====== */
 
-/* 螢幕小於 600px：讓固定區塊調整位置或隱藏 */
+/* 螢幕小於 600px：微調為單欄堆疊 */
 @media (max-width: 600px) {
-    /* 在手機上通常不建議固定在右下角，但如果需要，可以讓它置中在底部 */
+    
+    /* 總計區塊在手機上佔滿寬度，並取消靠右對齊 */
     .totalfee-fixed {
-        width: 90%;
-        left: 5%; /* 讓它置中 */
-        right: 5%;
-        margin: 0 auto;
-        /* 或者，如果不需要固定，可以改回 relative */
-        /* position: relative; 
-           bottom: auto;
-           margin: 20px auto; 
-        */
+        width: 100%;
+        max-width: none;
+        margin: 20px 0 0 0; 
     }
     
-    /* 調整 h1 的邊距，讓它不會超出視窗 */
+    /* 調整 h1 的邊距 */
     h1 {
         padding-left: 20px;
     }
@@ -206,9 +238,12 @@ h1 {
         text-align: center;
         min-height: auto; 
     }
-    .event-left,
+    .event-left {
+        margin-bottom: 10px; 
+    }
     .event-center {
         min-height: auto; 
+        padding-left: 0; 
     }
     /* 表格字體微調 */
     .tickets th, .tickets td {
