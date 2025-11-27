@@ -7,7 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "ticket_type")//票種
+@Table(name = "ticket_type")//票種，本地端和正式端都是ticket_type
 public class TicketType {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -15,13 +15,13 @@
     <div class="event-info">
         <div class="event-left">
             <!-- <img src="thepalaceMuseum.png" alt="event-icon" class="event-image"> -->
-            <!-- <img id="eventImage" src="" class="event-image"> -->
+            <img id="eventImage" src="" class="event-image">
         </div>
         <div class="event-center">
             <!-- <h5 class="event-title">甲子萬年:國立故宮博物院百年院慶特展</h5> -->
             <h5 id="eventTitle" class="event-title"></h5>
             <!-- <p>細項說明:祀與戎：古代兵器攻略</p> -->
-            <!-- <p id="eventImage"></p> -->
+            <p id="eventImage"></p>
             <!-- <p id="eventDetail"></p> -->
             <p id="eventDate"></p>
             <p id="eventLocation"></p>
@@ -126,11 +126,11 @@
         // 用 eventId 來載入後端資料或決定頁面顯示內容
         console.log("從 URL 拿到的活動 ID:", eventId);
 
-        //const eventId = 14;//調整活動ID使用
+        // const eventId = 14;//調整活動ID使用
         //等整個HTML文件載入完成後執行，活動資料載入
         document.addEventListener("DOMContentLoaded", () => {
             // const eventId = 20;//設定活動ID
-            fetch(`/events/${eventId}`) //呼叫後端API取得活動資料
+            fetch(`/api/events/${eventId}`) //呼叫後端API取得活動資料
                 .then(response => response.json())
                 .then(event => {
                     document.getElementById("eventTitle").textContent = event.title;
@@ -179,6 +179,7 @@
             fetch(`/api/eventtickettype/event_ticket_type/${eventId}`)//呼叫後端API取得票種資料 /api/tickets
                 .then(response => response.json())
                 .then(data => {
+                    console.log("【步驟1】API 拿到票種（data）:", data);
                     const table = document.querySelector(".tickets");
                     // 清除舊資料（保留表頭）
                     table.innerHTML = `
@@ -193,7 +194,8 @@
                     // tbody.innerHTML = "";//如果沒有票種資料，表頭也會被清掉
                     data.forEach(ticket => {
                         table.innerHTML += `
-                    <tr>
+                    <tr data-ticket-id="${ticket.id}" 
+                        data-ticket-template-id="${ticket.ticket_template_id}">
                         <td>${ticket.ticketType}</td>
                         <td>${ticket.customprice}</td>
                         <td>
@@ -405,13 +407,13 @@
                 const qty = parseInt(select.value) || 0;
                 if (qty > 0) {
                     const tr = select.closest("tr");
-                    const ticketId = tr.getAttribute("data-ticket-id") || null;
                     const ticketName = tr.querySelector("td").textContent.trim();
+                    const ticketTemplateId = tr.getAttribute("data-ticket-template-id") || null;
                     const price = parseInt(select.getAttribute("data-price")) || 0;
 
 
                     reserved.push({
-                        ticketTypeId: ticketId ? Number(ticketId) : null,
+                        ticketTemplateId: ticketTemplateId ? Number(ticketTemplateId) : null,
                         name: ticketName,
                         price: price,
                         quantity: qty
@@ -429,11 +431,11 @@
             const checkoutData = {
                 reserved,                   // array of {ticketTypeId, name, price, quantity}
                 totalAmount,                // 總金額
-                // selectedDate,               // 選擇的日期
                 createdAt: new Date().toISOString(),
                 // 若你有使用三分鐘保留機制，也可帶上 expiresAt
                 expiresAt: Date.now() + 1 * 60 * 1000
             };
+
 
             // 使用 sessionStorage 傳資料（會在同一瀏覽器分頁/視窗間保留）
             sessionStorage.setItem("checkoutData", JSON.stringify(checkoutData));
