@@ -11,4 +11,8 @@ public interface EventTicketTypeRep extends JpaRepository<EventTicketType, Long>
     List<EventTicketType> findByEventId(Long eventId);
     // 依 TicketType 查詢
     List<EventTicketType> findByTicketTypeId(Long ticketTypeId);
+
+    // 庫存操作
+
+    
 }

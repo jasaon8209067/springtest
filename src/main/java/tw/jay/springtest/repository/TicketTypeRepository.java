@@ -10,5 +10,5 @@ import tw.jay.springtest.entity.TicketType;
 
 @Repository
 public interface TicketTypeRepository extends JpaRepository<TicketType, Long> {
-    List<TicketType> findByStatusTrue();
+    List<TicketType> findAll();
 }

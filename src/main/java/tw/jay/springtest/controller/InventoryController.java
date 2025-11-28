@@ -71,4 +71,39 @@ public class InventoryController {
         );
     }
 
+    // 一次扣多筆庫存（batch）
+    @PostMapping("/decrease-multiple")
+    public Map<String, Object> decreaseMultiple(@RequestBody List<CreateUpdateInventoryRequest> requests) {
+        try {
+            boolean ok = inventorySer.decreaseMultipleStock(requests);
+            if (!ok) {
+                return Map.of("success", false, "message", "部分或全部扣庫存失敗");
+            }
+            return Map.of("success", true, "message", "成功扣除所有票種庫存");
+        } catch (RuntimeException ex) {
+            return Map.of("success", false, "message", ex.getMessage());
+        } catch (Exception ex) {
+            return Map.of("success", false, "message", "伺服器錯誤，請稍後再試");
+        }
+    }
+
+    // 一次回補多筆庫存（batch restore）
+    @PostMapping("/restore-multiple")
+    public Map<String, Object> restoreMultiple(@RequestBody List<CreateUpdateInventoryRequest> requests) {
+        try {
+            inventorySer.restoreMultipleStock(requests);
+            return Map.of("success", true, "message", "已回補多筆庫存");
+        } catch (Exception ex) {
+            return Map.of("success", false, "message", "回補發生錯誤");
+        }
+    }
+
+
+
+
+
+
+
+
+
 }

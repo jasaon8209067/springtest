@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <title>活動列表</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .event {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .event button {
+            margin-top: 5px;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>活動列表</h1>
+    <div id="events-container"></div>
+
+    <script>
+        const events = [
+            { id: 12, name: "音樂會", location: "台北小巨蛋", time: "2025-12-01 19:00" },
+            { id: 13, name: "美食展", location: "台中展覽館", time: "2025-12-05 10:00" },
+            { id: 14, name: "藝術展覽", location: "高雄美術館", time: "2025-12-10 09:00" }
+        ];
+
+        const container = document.getElementById('events-container');
+
+        events.forEach(event => {
+            const div = document.createElement('div');
+            div.className = 'event';
+            div.innerHTML = `
+                <strong>${event.name}</strong><br>
+                地點: ${event.location}<br>
+                時間: ${event.time}<br>
+                <button onclick="goToVote(${event.id})">前往選票頁</button>
+            `;
+            container.appendChild(div);
+        });
+
+        function goToVote(eventId) {
+            if (eventId == 14) {
+                // 活動ID=3 跳到購票結帳頁面
+                window.location.href = `ticketComp.html?eventId=${eventId}`;
+            } else {
+                // 其他活動跳到原本的選票頁
+                window.location.href = `ticketComp.html?eventId=${eventId}`;
+            }
+        }
+
+    </script>
+</body>
+
+</html>

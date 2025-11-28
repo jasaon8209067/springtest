@@ -15,6 +15,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "event_ticket_type")
+
 public class EventTicketType {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,7 +36,7 @@ public class EventTicketType {
     private BigDecimal customprice;
 
     @Column(name = "custom_limit")
-    private Integer customlimit;
+    private Integer customlimit;//庫存量
 
     @Column(name = "created_at")
     private LocalDateTime createdat;

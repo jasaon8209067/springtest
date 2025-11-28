@@ -1,7 +1,7 @@
-import './App.css'
+import './styles.css'
 import React from "react";
-import TicketCheckout from "./components/TicketCheckout";
-import "./components/styles.css"; 
+import TicketCheckout from "./TicketCheckout";
+// import "./components/styles.css"; 
 
 function App() {
   return (
@@ -13,6 +13,6 @@ function App() {
 
 export default App;
 
-//cd C:\learn0806\springtest\frontend
+//cd C:\learn0806\springtest\frontend\src\components
 //npm run dev
 

@@ -32,7 +32,7 @@ public class EventTicketTypeService {
                     dto.setCustomlimit(ett.getCustomlimit());
                     dto.setCreatedat(ett.getCreatedat());
                     
-                    dto.setRemark(ett.getTicketType().getRemark());
+                    // dto.setRemark(ett.getTicketType().getRemark());
 
                     return dto;
                 })
@@ -55,7 +55,7 @@ public class EventTicketTypeService {
                     dto.setCustomlimit(ett.getCustomlimit());
                     dto.setCreatedat(ett.getCreatedat());
                     
-                    dto.setRemark(ett.getTicketType().getRemark());
+                    // dto.setRemark(ett.getTicketType().getRemark());
                     return dto;
                 })
                 .collect(Collectors.toList());

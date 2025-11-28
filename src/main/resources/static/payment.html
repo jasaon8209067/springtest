@@ -59,7 +59,7 @@
                     data.reserved.forEach(item => {
                         const subtotal = (item.price || 0) * (item.quantity || 0);
                         html += `<tr>
-                            <td style="padding:6px 0">${escapeHtml(item.name || ("票種#" + (item.ticketTypeId || '?')))}</td>
+                            <td style="padding:6px 0">${escapeHtml(item.name || ("票種#" + (item.name || '?')))}</td>
                             <td style="text-align:center">${item.price || 0}</td>
                             <td style="text-align:center">${item.quantity || 0}</td>
                             <td style="text-align:right">${subtotal}</td>

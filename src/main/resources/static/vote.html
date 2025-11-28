@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>選票頁</title>
+</head>
+<body>
+    <h1>選票頁</h1>
+    <div id="event-info"></div>
+    <div id="vote-form"></div>
+
+    <script>
+        const events = [
+            { id: 1, name: "音樂會", location: "台北小巨蛋", time: "2025-12-01 19:00" },
+            { id: 2, name: "美食展", location: "台中展覽館", time: "2025-12-05 10:00" },
+            { id: 3, name: "藝術展覽", location: "高雄美術館", time: "2025-12-10 09:00" }
+        ];
+
+        // 取得 URL 參數 eventId
+        const params = new URLSearchParams(window.location.search);
+        const eventId = parseInt(params.get('eventId'));
+        const event = events.find(e => e.id === eventId);
+
+        const infoContainer = document.getElementById('event-info');
+        const formContainer = document.getElementById('vote-form');
+
+        if (event) {
+            infoContainer.innerHTML = `
+                <h2>${event.name}</h2>
+                <p>地點: ${event.location}</p>
+                <p>時間: ${event.time}</p>
+            `;
+
+            // 簡單投票表單
+            formContainer.innerHTML = `
+                <h3>投票選項</h3>
+                <form onsubmit="submitVote(event)">
+                    <label><input type="radio" name="choice" value="A" required> 選項 A</label><br>
+                    <label><input type="radio" name="choice" value="B"> 選項 B</label><br>
+                    <label><input type="radio" name="choice" value="C"> 選項 C</label><br><br>
+                    <button type="submit">投票</button>
+                </form>
+            `;
+        } else {
+            infoContainer.innerHTML = "<p>找不到對應的活動</p>";
+        }
+
+        function submitVote(e) {
+            e.preventDefault();
+            const choice = document.querySelector('input[name="choice"]:checked').value;
+            alert(`你對 "${event.name}" 投了 "${choice}"`);
+        }
+    </script>
+</body>
+</html>

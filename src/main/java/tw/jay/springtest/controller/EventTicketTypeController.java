@@ -31,21 +31,4 @@ public class EventTicketTypeController {
         return data;
     }
 
-    // 假设用户提交结账请求时，传递的是票种ID和购买数量
-//     @PostMapping("/process")
-//     public ResponseEntity<String> processCheckout(@RequestBody Customlimit customlimit) {
-//         Long ticketTypeId = checkoutRequest.getTicketTypeId();
-//         int quantity = checkoutRequest.getQuantity();
-
-//         // 执行扣库存操作
-//         boolean success = eventTicketTypeService.decreaseStock(ticketTypeId, quantity);
-
-//         if (success) {
-//             // 库存扣减成功
-//             return ResponseEntity.ok("Checkout successful.");
-//         } else {
-//             // 库存不足
-//             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not enough stock.");
-//         }
-//     }
 }

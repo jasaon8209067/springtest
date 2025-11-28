@@ -45,12 +45,12 @@ public class TicketTypeService {
     }
 
     //查啟用的票種
-    public List<TicketTypeResponse> getStatusTickets(){
-        return repo.findByStatusTrue()
-            .stream()
-            .map(TicketTypeMapper::toResponse)
-            .toList();
-    }
+    // public List<TicketTypeResponse> getStatusTickets(){
+    //     return repo.findByStatusTrue()
+    //         .stream()
+    //         .map(TicketTypeMapper::toResponse)
+    //         .toList();
+    // }
 
     //新增票種
     public TicketTypeResponse createTicket(CreateTicketTypeRequest dto){
@@ -72,15 +72,15 @@ public class TicketTypeService {
     }
 
     //更新票種狀態
-    public TicketTypeResponse updateStatus(Long id, boolean status){
-        TicketType entity = repo.findById(id)
-        .orElseThrow(() -> new RuntimeException("此票種不存在"));
+    // public TicketTypeResponse updateStatus(Long id, boolean status){
+    //     TicketType entity = repo.findById(id)
+    //     .orElseThrow(() -> new RuntimeException("此票種不存在"));
 
-        entity.setStatus(status);
-        TicketType updated = repo.save(entity);
+    //     entity.(status);
+    //     TicketType upsetStatusdated = repo.save(entity);
 
-        return TicketTypeMapper.toResponse(updated);     
-    }
+    //     return TicketTypeMapper.toResponse(updated);     
+    // }
 
     //查詢單一票種
     public TicketTypeResponse findById(Long id){

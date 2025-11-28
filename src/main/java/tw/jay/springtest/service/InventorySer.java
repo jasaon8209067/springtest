@@ -6,8 +6,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.transaction.Transactional;
 import tw.jay.springtest.DTO.Request.CreateUpdateInventoryRequest;
 import tw.jay.springtest.DTO.Response.InventoryResponse;
 import tw.jay.springtest.entity.Inventory;
@@ -35,10 +35,9 @@ public class InventorySer {
 
     // 取得單一票種庫存
     public InventoryResponse getInventory(Long ticketTypeId) {
-        Inventory inv = inventoryRepo.findByTicketTypeId(ticketTypeId);
-        if (inv == null) {
-            throw new RuntimeException("該票種庫存不存在");
-        }
+        Inventory inv = inventoryRepo.findByTicketTypeId(ticketTypeId)
+            .orElseThrow(() ->  new RuntimeException("該票種庫存不存在"));
+        
         return inventoryMapper.toResponse(inv);
     }
 
@@ -49,7 +48,8 @@ public class InventorySer {
         TicketType ticketTypeEntity = ticketTypeRepo.findById(request.getTicketTypeId())
                 .orElseThrow(() -> new RuntimeException("此票種不存在"));
 
-        Inventory inv = inventoryRepo.findByTicketTypeId(ticketTypeEntity.getId());
+        Inventory inv = inventoryRepo.findByTicketTypeId(ticketTypeEntity.getId())
+                .orElse(null);
         if (inv == null) {
             inv = new Inventory();
             inv.setTicketType(ticketTypeEntity);
@@ -77,5 +77,37 @@ public class InventorySer {
     public void restoreStock(CreateUpdateInventoryRequest request) {
         inventoryRepo.increaseStock(request.getTicketTypeId(), request.getQuantity());
     }
+
+
+      /**
+     * 一次批次扣多筆庫存（同一 Transaction）。若任一筆扣庫存失敗（updated <= 0），
+     * 丟出 RuntimeException 以觸發 Spring Transaction rollback。
+     */
+    @Transactional
+    public boolean decreaseMultipleStock(List<CreateUpdateInventoryRequest> requests) {
+        for (CreateUpdateInventoryRequest r : requests) {
+            int updated = inventoryRepo.decreaseStock(r.getTicketTypeId(), r.getQuantity());
+            if (updated <= 0) {
+                // 失敗就丟例外 -> rollback
+                throw new RuntimeException("票種 " + r.getTicketTypeId() + " 庫存不足或不存在");
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 批次回補（不用 transaction 也可以，但放在同一 method 方便呼叫）
+     */
+    @Transactional
+    public void restoreMultipleStock(List<CreateUpdateInventoryRequest> requests) {
+        for (CreateUpdateInventoryRequest r : requests) {
+            inventoryRepo.increaseStock(r.getTicketTypeId(), r.getQuantity());
+        }
+    }
+
+
+
+
+
 
 }

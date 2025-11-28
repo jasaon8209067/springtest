@@ -5,6 +5,7 @@ import "./styles.css";
 const BASE_API_URL = 'http://localhost:8080';
 // **********************************************
 
+const DEFAULT_IMAGE_URL = "/images/test.jpg";
 
 export default function TicketCheckout() {
   const params = new URLSearchParams(window.location.search);
@@ -53,9 +54,10 @@ export default function TicketCheckout() {
         }
         const withQty = data.map((t) => ({
           id: t.id ?? null,
-          ticketType: t.ticketType,
+          ticket_template_id: t.ticket_template_id,
+          ticketType: t.ticketType,
           customprice: t.customprice,
-          remark: t.remark || "",
+          description: t.description || "",
           selectedQty: 0, 
         }));
         setTickets(withQty);
@@ -85,6 +87,26 @@ export default function TicketCheckout() {
     try {
       console.log("開始結帳流程...");
       setMessage("已暫時保留票券，請於 3 分鐘內完成付款。");
+        // 1. 處理需要傳送的票種資料格式
+      const checkoutItems = selected.map(t => ({
+          ticketTypeId: t.ticket_template_id, // 假設後端需要的是 id
+          ticketType: t.ticketType,
+          quantity: t.selectedQty,
+          price: Number(t.customprice) // 確保是數字
+      }));
+
+      // 2. 建構最終要傳送的 JSON 物件
+      const payload = {
+          eventId: eventId,
+          totalAmount: totalAmount,
+          totalTickets: totalTickets,
+          items: checkoutItems
+      };
+      
+      // 3. 在 Console 顯示 JSON 格式的資料
+      console.log("📝 準備傳送的結帳資料 (JSON):");
+      console.log(JSON.stringify(payload, null, 2)); // 使用 JSON.stringify 格式化輸出
+      console.log(payload); // 輸出物件方便檢查
       // 實際導向：window.location.href = "/payment.html";
 
     } catch (err) {
@@ -102,11 +124,23 @@ export default function TicketCheckout() {
       {/* 活動資訊區：佔滿全寬 */}
       <div className="event-info">
         <div className="event-left">
-          {event && event.image ? (
-            <img className="event-image" alt="event" src={`data:image/jpeg;base64,${event.image}`} />
+{/*           {event && event.image ? (
+            <img 
+                className="event-image" 
+                alt="event" 
+                src={`${BASE_API_URL}${event.image}`} 
+            />
           ) : (
             <div style={{ width: 120, height: 80, background: "#eee" }} />
           )}
+        </div> */}
+
+        {/*這是讀自己的圖片，非資料庫*/}
+        <img 
+              className="event-image" 
+              alt="event" 
+              src={`${BASE_API_URL}${DEFAULT_IMAGE_URL}`} 
+          />
         </div>
 
         <div className="event-center">
@@ -163,7 +197,7 @@ export default function TicketCheckout() {
                             <option value={4}>4</option>
                           </select>
                         </td>
-                        <td>{t.remark}</td>
+                        <td>{t.description}</td>
                       </tr>
                     ))
                   )}

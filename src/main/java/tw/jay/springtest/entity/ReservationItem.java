@@ -14,6 +14,8 @@ public class ReservationItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+
     private int reservationId;
     private int ticketTypeId;
     private Integer quantity;//數量

@@ -6,7 +6,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import tw.jay.springtest.entity.Events;
+import tw.jay.springtest.entity.Event;
 import tw.jay.springtest.repository.EventsRepository;
 
 
@@ -15,11 +15,11 @@ public class EventsService {
     @Autowired
     private EventsRepository eventsRepository;
 
-    public Optional<Events> getEventById(Long id) {//透過id取得活動資料
+    public Optional<Event> getEventById(Long id) {//透過id取得活動資料
         return eventsRepository.findById(id);
     }
 
-    public List<Events> getallEvent(){
+    public List<Event> getallEvent(){
         return eventsRepository.findAll();
     }
     // public  List<Events> findActiveEvents(Status status){
