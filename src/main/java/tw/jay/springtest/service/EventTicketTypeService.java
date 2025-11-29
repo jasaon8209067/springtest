@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import tw.jay.springtest.DTO.Response.EventTicketTypeResponse;
 import tw.jay.springtest.entity.EventTicketType;
 import tw.jay.springtest.repository.EventTicketTypeRep;
@@ -54,7 +55,7 @@ public class EventTicketTypeService {
                     dto.setCustomprice(ett.getCustomprice());
                     dto.setCustomlimit(ett.getCustomlimit());
                     dto.setCreatedat(ett.getCreatedat());
-                    
+                    dto.setDescription(ett.getTicketType().getDescription());
                     // dto.setRemark(ett.getTicketType().getRemark());
                     return dto;
                 })
@@ -63,27 +64,40 @@ public class EventTicketTypeService {
 
     //測試扣庫存
 
+    /*
+    減少指定票種的庫存
+    @param eventTicketTypeId EventTicketType的ID (primary key)
+    @param quantity減少的數量
+    @return true:扣減成功(庫存足夠並更新了1行);false:庫存不足或ID錯誤
+    */
+    public boolean decreaseStock(Long eventTicketTypeId, int quantity){
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("減少數量必須大於0");
+        }
+        //使用Repository中的原子性更新方法
+        int updateRows = eventTicketTypeRep.decreaseStock(eventTicketTypeId, quantity);
+        
+        return updateRows > 0;
+    }
+
+    /*
+    增加指定票種的庫存(包括訂單取消或回滾)
+    @param eventTicketTypeId EventTicketType的 ID (primary key)
+    @param quantity增加的數量
+    @return true: 增加成功; false: ID 錯誤
+    */
+    @Transactional
+    public boolean increaseStock(Long eventTicketTypeId, int quantity){
+        if(quantity <= 0){
+            throw new IllegalArgumentException("增加數量必須大於0");
+        }
+        //使用Repository中的原子性更新方法
+        int updateRows = eventTicketTypeRep.increaseStock(eventTicketTypeId, quantity);
+
+        return updateRows > 0;
+   }
 
 
 
-    //測試扣庫存
-    // public boolean decreaseStock(Long ticketTypeId, int quantity) {
-    //     // 查找指定的票种
-    //     EventTicketType eventTicketType = eventTicketTypeRep.findById(ticketTypeId)
-    //             .orElseThrow(() -> new RuntimeException("Ticket not found"));
 
-    //     // 判断库存是否足够
-    //     if (eventTicketType.getCustomlimit() >= quantity) {
-    //         // 扣减库存
-    //         eventTicketType.setCustomlimit(eventTicketType.getCustomlimit() - quantity);
-
-    //         // 保存更新后的票种
-    //         eventTicketTypeRep.save(eventTicketType);
-    //         return true;  // 扣减成功
-    //     } else {
-    //         return false;  // 库存不足
-    //     }
-    // }
 }
-    
-

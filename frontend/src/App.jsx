@@ -13,6 +13,6 @@ function App() {
 
 export default App;
 
-//cd C:\learn0806\springtest\frontend\src\components
+//cd C:\learn0806\springtest\frontend\src
 //npm run dev
 

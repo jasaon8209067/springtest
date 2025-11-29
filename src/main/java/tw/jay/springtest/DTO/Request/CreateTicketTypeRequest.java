@@ -19,4 +19,5 @@ public class CreateTicketTypeRequest {
     @NotNull(message = "狀態不能為空")
     private Boolean status;
 
+    
 }

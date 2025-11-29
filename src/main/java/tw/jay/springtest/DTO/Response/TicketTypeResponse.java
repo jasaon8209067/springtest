@@ -7,6 +7,7 @@ public class TicketTypeResponse {
     private Long id;
     private String name;
     private int price;
-    private String remark;
+    // private String remark;
     private boolean status;
+    private String description;
 }

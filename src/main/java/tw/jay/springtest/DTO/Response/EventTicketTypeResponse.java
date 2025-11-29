@@ -14,6 +14,7 @@ public class EventTicketTypeResponse {
     private BigDecimal customprice;
     private Integer customlimit;//庫存量
     private LocalDateTime createdat;
-
     // private String remark;
+    private String description;
+
 }
