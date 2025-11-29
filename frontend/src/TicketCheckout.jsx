@@ -1,13 +1,9 @@
-// TicketCheckout.jsx（已修正）
-// 請直接覆蓋你原本的檔案並重新啟動前端（或重新載入瀏覽器分頁）
-
 import React, { useEffect, useState } from "react";
 import "./styles.css";
 
-// **** 請在這裡設定您的 Spring Boot 基礎 URL ****
+// **** 設定Spring Boot基礎URL ****
 const BASE_API_URL = 'http://localhost:8080';
-// **********************************************
-
+//圖片先寫死
 const DEFAULT_IMAGE_URL = "/images/test.jpg";
 
 export default function TicketCheckout() {
@@ -17,6 +13,11 @@ export default function TicketCheckout() {
   const [event, setEvent] = useState(null);
   const [tickets, setTickets] = useState([]);
   const [message, setMessage] = useState("");
+
+  //防止重複點擊
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  //使用ref保存計時器
+  const [rollbackTimer, setRollbackTimer] = useState(null);
 
   const totalAmount = tickets.reduce(
     (acc, t) => acc + (t.selectedQty || 0) * Number(t.customprice || 0),
@@ -28,7 +29,7 @@ export default function TicketCheckout() {
     .map((t) => `${t.ticketType} ${t.selectedQty}張`)
     .join("/");
 
-  // 載入活動資料
+  //載入活動資料
   useEffect(() => {
     if (!eventId) return;
     fetch(`${BASE_API_URL}/api/events/${eventId}`)
@@ -43,30 +44,27 @@ export default function TicketCheckout() {
       });
   }, [eventId]);
 
-  // 載入票種資料（已修正：不要使用未定義的 data，並加入容錯與 debug）
-  useEffect(() => {
+  //載入票種資料
+  const loadTicketTypes = () => {
     if (!eventId) return;
 
     fetch(`${BASE_API_URL}/api/eventtickettype/event_ticket_type/${eventId}`)
       .then((r) => {
-        if (!r.ok) throw new Error(`無法取得票種資料，狀態碼: ${r.status}`);
+        if (!r.ok) throw new Error(`無法取得票種資料，錯誤碼: ${r.status}`);
         return r.json();
       })
       .then((resp) => {
-        // 在這裡使用 resp（或 data），不要跳到函式外部去使用未宣告的變數
-        console.log("API raw response for tickets:", resp);
-
-        // 若 API 回傳是 { data: [...] }、{ items: [...] } 等，先嘗試取出內層陣列
         let ticketsArray = resp;
         if (resp && typeof resp === "object" && !Array.isArray(resp)) {
           ticketsArray = resp.data ?? resp.items ?? resp.tickets ?? ticketsArray;
         }
+        console.log("API raw response for tickets:", resp);
 
         if (!Array.isArray(ticketsArray)) {
-          throw new Error("API 返回的資料格式不正確，預期為陣列，實際為: " + JSON.stringify(resp));
+          throw new Error("API 返回資料格式不正確，預期為陣列。");
         }
 
-        // map 並做多種欄位名稱容錯（依你後端 DTO，你可以縮減或調整）
+        // map做多種欄位名稱容錯(依後端DTO可以調整）
         const withQty = ticketsArray.map((t) => {
           // 支援多種 description 來源（避免欄位命名差異）
           const desc =
@@ -84,7 +82,7 @@ export default function TicketCheckout() {
           const id = t.id ?? t.ticket_template_id ?? null;
 
           // 印出每筆原始物件與解析結果，方便 debug
-          console.log("ticket raw:", t, "=> resolved desc:", desc, "=> id:", id, "=> price:", price);
+          // console.log("ticket raw:", t, "=> resolved desc:", desc, "=> id:", id, "=> price:", price);
 
           return {
             id: id,
@@ -102,50 +100,160 @@ export default function TicketCheckout() {
         console.error(err);
         setMessage("讀取票種資料時發生錯誤: " + err.message);
       });
+  };
+  useEffect(() => {
+    loadTicketTypes();
   }, [eventId]);
 
-  // 處理票數變更
+  //處理票數變更
   function handleQtyChange(ticketId, qty) {
+    //確保選中的數量不超過當前可用庫存
+    const maxQty = tickets.find(t => t.id === ticketId)?.customlimit ?? 4; // 假設最大購買量是 4
+    const finalQty = Math.min(qty, maxQty);
     setTickets((prev) => prev.map((t) => (t.id === ticketId ? { ...t, selectedQty: qty } : t)));
   }
+
+  //處理庫存回滾rollback
+  const rollbackStock = async (itemsToRollback) => {
+    setMessage("已超過3分鐘，訂單未付款，票將退回庫存");
+    console.log("開始回滾", itemsToRollback);
+
+    const increasePromises = itemsToRollback.map(async (item) => {
+      const url = `${BASE_API_URL}/api/eventtickettype/${item.ticketId}/increaseStock`;
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quantity: item.quantity }),
+      });
+
+      if (!response.ok) {
+        console.error(`票種ID ${item.ticketId} 庫存回滾失敗`, await response.text());
+      } else {
+        console.log(`票種ID ${item.ticketId} 庫存回滾 ${item.quantity} 成功`);
+      }
+    });
+
+    await Promise.all(increasePromises);
+    setMessage("庫存已回滾，請重新選擇");
+
+    //重新載入票種資料，更新前端的庫存顯示(如果有)
+    loadTicketTypes();
+    //清空選中的數量
+    setTickets(prev => prev.map(t => ({ ...t, selectedQty: 0 })));
+  }
+
+
+
 
   // 處理結帳流程
   async function handleCheckout(e) {
     e.preventDefault();
+    if (isCheckingOut) return; //防止重複提交
+
     setMessage("");
+    setIsCheckingOut(true);
+
+    //1.取得選定的票種
     const selected = tickets.filter((t) => t.selectedQty > 0);
     if (selected.length === 0) {
       alert("請選擇至少一張票。");
+      setIsCheckingOut(false);
       return;
     }
+
+    //2.建立結帳項目，使用t.id作為庫存操作的目標 ID
+    const checkoutItems = selected.map((t) => ({
+      ticketId: t.id, //庫存操作的主鍵ID
+      ticketTypeId: t.ticket_template_id, // 票種ID
+      ticketType: t.ticketType,
+      quantity: t.selectedQty,
+      price: Number(t.customprice),
+    }));
 
     try {
       console.log("開始結帳流程...");
       setMessage("已暫時保留票券，請於 3 分鐘內完成付款。");
 
-      const checkoutItems = selected.map((t) => ({
-        ticketTypeId: t.ticket_template_id, // 假設後端需要的是 id
-        ticketType: t.ticketType,
-        quantity: t.selectedQty,
-        price: Number(t.customprice),
-      }));
+      //3.針對每一個選定的票種，使用後端API扣庫存
+      const decreasePromises = checkoutItems.map(async (item) => {
+        const url = `${BASE_API_URL}/api/eventtickettype/${item.ticketId}/decreaseStock`;
+        const response = await fetch(url, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quantity: item.quantity }),
+        });
 
-      const payload = {
-        eventId: eventId,
-        totalAmount: totalAmount,
-        totalTickets: totalTickets,
-        items: checkoutItems,
-      };
+        if (!response.ok) {
+          const errorText = await response.text();
+          //拋出票種名稱的錯誤訊息，方便用戶識別
+          throw new Error(`[${item.ticketType}] 庫存不足: ${errorText}`);
+        }
+        console.log(`票種ID: ${item.ticketId} 庫存扣: ${item.quantity} 成功`);
+      });
+
+      //4.等待所有庫存扣減完成
+      await Promise.all(decreasePromises);
+      console.log("庫存已扣成功，進入支付流程");
+      
+      //5.成功扣後，設定回滾時間(3分鐘=180000毫秒)
+      const ROLLBACK_TIME_MS = 180000; //3minutes
+      //清除舊計時器
+      if (rollbackTimer) clearTimeout(rollbackTimer);
+
+      // 設定新的計時器
+      const timerId = setTimeout(() => { //3分鐘內仍未結帳，則執行回滾
+        rollbackStock(checkoutItems);
+        setRollbackTimer(null); //清除計時器狀態
+      }, ROLLBACK_TIME_MS);
+      setRollbackTimer(timerId); //保存新的計時器ID
+      setMessage(`庫存保留: ${totalTickets} 張票券，請於3分鐘內完成付款`);
+
+      // 6.(此處為模擬) 準備傳送給支付系統的資料
+      const payload = {
+        eventId: eventId,
+        totalAmount: totalAmount,
+        totalTickets: totalTickets,
+        items: checkoutItems,
+      };
+
+      // const checkoutItems = selected.map((t) => ({
+      //   ticketId: t.id,
+      //   ticketTypeId: t.ticket_template_id, // 票種ID
+      //   ticketType: t.ticketType,
+      //   quantity: t.selectedQty,
+      //   price: Number(t.customprice),
+      // }));
+
+      // const payload = {
+      //   eventId: eventId,
+      //   totalAmount: totalAmount,
+      //   totalTickets: totalTickets,
+      //   items: checkoutItems,
+      // };
 
       console.log("📝 準備傳送的結帳資料 (JSON):");
       console.log(JSON.stringify(payload, null, 2));
       console.log(payload);
       // 實際導向：window.location.href = "/payment.html";
     } catch (err) {
-      setMessage("與伺服器通訊發生錯誤，請稍後再試");
-      console.error(err);
+      //庫存扣失敗，顯示錯誤給用戶
+      setMessage("結帳失敗:庫存不足");
+      console.error("結帳失敗:", err);
+      loadTicketTypes(); //重新載入票種以顯示最新庫存
     }
+    finally {
+      setIsCheckingOut(false);
+    }
   }
+
+  //組件卸載時清除計時器，防止內存洩露
+  useEffect(() => {
+    return () => {
+      if (rollbackTimer) {
+        clearTimeout(rollbackTimer);
+      }
+    };
+  }, [rollbackTimer]);
 
   return (
     <div className="ticketpage">
@@ -197,6 +305,7 @@ export default function TicketCheckout() {
                             value={t.selectedQty}
                             onChange={(e) => handleQtyChange(t.id, Number(e.target.value))}
                             data-price={t.customprice}
+                            disabled={isCheckingOut} //結帳中禁用選擇
                           >
                             <option value={0}>請選擇張數</option>
                             <option value={1}>1</option>
@@ -227,7 +336,12 @@ export default function TicketCheckout() {
             <strong>總金額: <span id="total">NT${totalAmount}</span></strong>
           </div>
           <div style={{ marginTop: 10 }}>
-            <button className="btn" id="checkoutBtn" onClick={handleCheckout}>前往結帳</button>
+            <button 
+              className="btn" 
+              id="checkoutBtn" 
+              onClick={handleCheckout}
+              disabled={isCheckingOut || totalTickets === 0} //禁用按鈕直到載入完成或選擇數量 > 0
+            >前往結帳</button>
           </div>
         </aside>
       </div>
