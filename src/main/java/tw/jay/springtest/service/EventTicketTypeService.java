@@ -5,8 +5,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.transaction.Transactional;
 import tw.jay.springtest.DTO.Response.EventTicketTypeResponse;
 import tw.jay.springtest.entity.EventTicketType;
 import tw.jay.springtest.repository.EventTicketTypeRep;
@@ -70,6 +70,7 @@ public class EventTicketTypeService {
     @param quantity減少的數量
     @return true:扣減成功(庫存足夠並更新了1行);false:庫存不足或ID錯誤
     */
+    @Transactional
     public boolean decreaseStock(Long eventTicketTypeId, int quantity){
         if (quantity <= 0) {
             throw new IllegalArgumentException("減少數量必須大於0");
