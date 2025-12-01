@@ -17,7 +17,7 @@ import tw.jay.springtest.entity.Member;
 import tw.jay.springtest.entity.OrderItem;
 import tw.jay.springtest.entity.Orders;
 import tw.jay.springtest.repository.EventTicketTypeRep;
-import tw.jay.springtest.repository.EventsRepository;
+import tw.jay.springtest.repository.EventRepositoryJPA;
 import tw.jay.springtest.repository.MemberRepository;
 import tw.jay.springtest.repository.OrderItemRepository;
 import tw.jay.springtest.repository.OrdersRep;
@@ -31,7 +31,7 @@ public class OrdersService {
     @Autowired
     private EventTicketTypeRep eventTicketTypeRep;
     @Autowired
-    private EventsRepository eventsRep;
+    private EventRepositoryJPA eventsRep;
     @Autowired
     private EventTicketTypeService eventTicketTypeService;
     @Autowired
