@@ -1,12 +1,11 @@
 import './styles.css'
-import React from "react";
-import TicketCheckout from "./TicketCheckout";
+import SelectTicket from "./SelectTicket";
 // import "./components/styles.css"; 
 
 function App() {
   return (
       <div className="ticketpage">
-      <TicketCheckout />
+      <SelectTicket/>
   </div>
   );
 }
